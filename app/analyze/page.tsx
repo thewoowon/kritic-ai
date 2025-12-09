@@ -1,18 +1,41 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useSession } from "next-auth/react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Input } from "@/components/ui/input"
 import { ArrowLeft, Loader2 } from "lucide-react"
 import Link from "next/link"
+import { Header } from "@/components/ui/Header"
 
 export default function AnalyzePage() {
+  const { data: session, status } = useSession()
+  const router = useRouter()
   const [originalResponse, setOriginalResponse] = useState("")
   const [context, setContext] = useState("")
   const [selectedModels, setSelectedModels] = useState<string[]>(["gpt5", "claude"])
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [creditCost, setCreditCost] = useState(10)
+
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/login")
+    }
+  }, [status, router])
+
+  if (status === "loading") {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin" />
+      </div>
+    )
+  }
+
+  if (!session) {
+    return null
+  }
 
   const models = [
     { id: "gpt5", name: "GPT-5", description: "Skeptical investor" },
@@ -66,6 +89,7 @@ export default function AnalyzePage() {
 
   return (
     <div className="min-h-screen bg-black text-white">
+      <Header />
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         <Link href="/" className="inline-flex items-center gap-2 text-gray-400 hover:text-white mb-8">
           <ArrowLeft className="w-4 h-4" />

@@ -1,43 +1,73 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useSession } from "next-auth/react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, CreditCard } from "lucide-react"
+import { Header } from "@/components/ui/Header"
+import { ArrowLeft, CreditCard, Loader2 } from "lucide-react"
 import Link from "next/link"
 
 export default function CreditsPage() {
+  const { data: session, status } = useSession()
+  const router = useRouter()
   const [balance, setBalance] = useState(100)
+  const [loading, setLoading] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/login")
+    }
+  }, [status, router])
+
+  if (status === "loading") {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin" />
+      </div>
+    )
+  }
+
+  if (!session) {
+    return null
+  }
 
   const packages = [
-    { credits: 100, price: 10, popular: false },
-    { credits: 300, price: 25, popular: true, savings: "20% savings" },
-    { credits: 700, price: 50, popular: false, savings: "40% savings" },
+    { id: "starter", credits: 100, price: 10, popular: false },
+    { id: "pro", credits: 300, price: 25, popular: true, savings: "20% savings" },
+    { id: "business", credits: 700, price: 50, popular: false, savings: "40% savings" },
   ]
 
-  const handlePurchase = async (credits: number, price: number) => {
+  const handlePurchase = async (packageId: string) => {
+    setLoading(packageId)
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/credits/purchase`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/credits/create-checkout-session`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          amount: credits,
-          payment_method: "stripe_token_mock", // In production, use actual Stripe token
+          package: packageId,
+          success_url: `${window.location.origin}/credits/success`,
+          cancel_url: `${window.location.origin}/credits`
         }),
       })
 
       const data = await response.json()
-      setBalance(data.balance)
-      alert(`Successfully purchased ${credits} credits!`)
+      if (data.checkout_url) {
+        window.location.href = data.checkout_url
+      }
     } catch (error) {
       console.error("Purchase failed:", error)
       alert("Purchase failed. Please try again.")
+    } finally {
+      setLoading(null)
     }
   }
 
   return (
     <div className="min-h-screen bg-black text-white">
+      <Header />
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         <Link href="/" className="inline-flex items-center gap-2 text-gray-400 hover:text-white mb-8">
           <ArrowLeft className="w-4 h-4" />
@@ -88,14 +118,22 @@ export default function CreditsPage() {
                     <p className="text-xs text-green-500">{pkg.savings}</p>
                   )}
                   <Button
-                    onClick={() => handlePurchase(pkg.credits, pkg.price)}
+                    onClick={() => handlePurchase(pkg.id)}
+                    disabled={loading !== null}
                     className={`w-full ${
                       pkg.popular
                         ? "bg-red-600 hover:bg-red-700"
                         : "bg-zinc-800 hover:bg-zinc-700"
                     }`}
                   >
-                    Purchase
+                    {loading === pkg.id ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                        Processing...
+                      </>
+                    ) : (
+                      "Purchase"
+                    )}
                   </Button>
                 </div>
               </div>

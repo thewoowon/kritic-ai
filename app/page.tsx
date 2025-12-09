@@ -1,10 +1,13 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { AlertTriangle, CheckCircle2, XCircle } from "lucide-react"
+import { KriticFusionSection } from "@/components/kritic/KriticFusionSection"
+import { Header } from "@/components/ui/Header"
 
 export default function Home() {
   return (
     <div className="min-h-screen bg-black text-white">
+      <Header />
       {/* Hero Section */}
       <div className="container mx-auto px-4 py-16">
         <div className="max-w-4xl mx-auto text-center space-y-8">
@@ -22,6 +25,11 @@ export default function Home() {
               </Button>
             </Link>
           </div>
+        </div>
+
+        {/* 3D Fusion Animation */}
+        <div className="mt-16">
+          <KriticFusionSection />
         </div>
 
         {/* Comparison Section */}
