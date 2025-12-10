@@ -7,4 +7,8 @@ export const revalidate = 0
 
 const handler = NextAuth(authOptions)
 
-export { handler as GET, handler as POST }
+// 💥 여기가 핵심: Next.js 16 라우터가 이 default export를 필요로 한다.
+export default handler;
+
+export const GET = handler;
+export const POST = handler;
