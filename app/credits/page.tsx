@@ -23,12 +23,14 @@ export default function CreditsPage() {
   useEffect(() => {
     // 백엔드에서 크레딧 잔액 가져오기
     const fetchBalance = async () => {
-      if (!session?.user?.userId) return
+      // @ts-expect-error - 커스텀 프로퍼티
+      const backendToken = session?.user?.backendAccessToken
+      if (!backendToken) return
 
       try {
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/credits/balance`, {
           headers: {
-            "Authorization": `Bearer ${session.user.userId}`
+            "Authorization": `Bearer ${backendToken}`
           }
         })
 
@@ -66,7 +68,9 @@ export default function CreditsPage() {
   ]
 
   const handlePurchase = async (packageId: string) => {
-    if (!session?.user?.userId) {
+    // @ts-expect-error - 커스텀 프로퍼티
+    const backendToken = session?.user?.backendAccessToken
+    if (!backendToken) {
       alert("Please log in to purchase credits.")
       return
     }
@@ -77,7 +81,7 @@ export default function CreditsPage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${session.user.userId}`
+          "Authorization": `Bearer ${backendToken}`
         },
         body: JSON.stringify({
           package: packageId,

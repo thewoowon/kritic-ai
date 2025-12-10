@@ -34,9 +34,13 @@ export const authOptions: NextAuthOptions = {
 
         if (response.ok) {
           const data = await response.json()
-          // 백엔드에서 받은 user_id 저장
+          // 백엔드에서 받은 user_id와 JWT access_token 저장
           if (data.user_id) {
             user.id = data.user_id.toString()
+          }
+          if (data.access_token) {
+            // @ts-ignore - 커스텀 프로퍼티
+            user.backendAccessToken = data.access_token
           }
           return true
         }
@@ -54,6 +58,11 @@ export const authOptions: NextAuthOptions = {
       if (user?.id) {
         token.userId = user.id
       }
+      // @ts-ignore - 커스텀 프로퍼티
+      if (user?.backendAccessToken) {
+        // @ts-ignore - 커스텀 프로퍼티
+        token.backendAccessToken = user.backendAccessToken
+      }
       return token
     },
     async session({ session, token }) {
@@ -61,6 +70,11 @@ export const authOptions: NextAuthOptions = {
         session.user.id = token.id as string
         if (token.userId) {
           session.user.userId = token.userId as string
+        }
+        // @ts-ignore - 커스텀 프로퍼티
+        if (token.backendAccessToken) {
+          // @ts-ignore - 커스텀 프로퍼티
+          session.user.backendAccessToken = token.backendAccessToken as string
         }
       }
       return session
