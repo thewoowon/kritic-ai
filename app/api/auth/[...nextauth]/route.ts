@@ -1,14 +1,19 @@
-import NextAuth from "next-auth"
-import { authOptions } from "../../../../lib/auth"
+// app/api/auth/[...nextauth]/route.ts
 
-export const runtime = "nodejs"
-export const dynamic = "force-dynamic"
-export const revalidate = 0
+import NextAuth from "next-auth";
+import { authOptions } from "@/lib/auth";
 
-const handler = NextAuth(authOptions)
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
-// 💥 여기가 핵심: Next.js 16 라우터가 이 default export를 필요로 한다.
-export default handler;
+// Next.js 16에서는 handler를 직접 export하면 최적화 과정에서 제거되는 버그가 존재.
+// 함수로 래핑하면 절대 제거되지 않는다.
 
-export const GET = handler;
-export const POST = handler;
+export function GET(req: Request) {
+  return NextAuth(authOptions)(req);
+}
+
+export function POST(req: Request) {
+  return NextAuth(authOptions)(req);
+}
