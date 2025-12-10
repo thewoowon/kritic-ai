@@ -11,7 +11,7 @@ import Link from "next/link"
 export default function CreditsPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
-  const [balance, setBalance] = useState(100)
+  const [balance, setBalance] = useState<number | null>(null)
   const [loading, setLoading] = useState<string | null>(null)
 
   useEffect(() => {
@@ -19,6 +19,33 @@ export default function CreditsPage() {
       router.push("/login")
     }
   }, [status, router])
+
+  useEffect(() => {
+    // 백엔드에서 크레딧 잔액 가져오기
+    const fetchBalance = async () => {
+      if (!session?.user?.userId) return
+
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/credits/balance`, {
+          headers: {
+            "Authorization": `Bearer ${session.user.userId}`
+          }
+        })
+
+        if (response.ok) {
+          const data = await response.json()
+          setBalance(data.balance)
+        }
+      } catch (error) {
+        console.error("Failed to fetch balance:", error)
+        setBalance(100) // 실패 시 기본값
+      }
+    }
+
+    if (session) {
+      fetchBalance()
+    }
+  }, [session])
 
   if (status === "loading") {
     return (
@@ -39,12 +66,18 @@ export default function CreditsPage() {
   ]
 
   const handlePurchase = async (packageId: string) => {
+    if (!session?.user?.userId) {
+      alert("Please log in to purchase credits.")
+      return
+    }
+
     setLoading(packageId)
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/credits/create-checkout-session`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${session.user.userId}`
         },
         body: JSON.stringify({
           package: packageId,
