@@ -18,12 +18,37 @@ export default function AnalyzePage() {
   const [selectedModels, setSelectedModels] = useState<string[]>(["gpt5", "claude"])
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [creditCost, setCreditCost] = useState(10)
+  const [creditsBalance, setCreditsBalance] = useState<number | null>(null)
 
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/login")
+      return
     }
-  }, [status, router])
+
+    if (status === "authenticated") {
+      // Fetch credits balance
+      const fetchCredits = async () => {
+        // @ts-expect-error - 커스텀 프로퍼티
+        const backendToken = session?.user?.backendAccessToken
+        if (!backendToken) return
+
+        try {
+          const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/credits/balance`, {
+            headers: {
+              "Authorization": `Bearer ${backendToken}`
+            }
+          })
+          const data = await response.json()
+          setCreditsBalance(data.balance)
+        } catch (error) {
+          console.error("Failed to fetch credits:", error)
+        }
+      }
+
+      fetchCredits()
+    }
+  }, [status, router, session])
 
   if (status === "loading") {
     return (
@@ -86,6 +111,19 @@ export default function AnalyzePage() {
       const data = await response.json()
 
       if (data.analysis_id) {
+        // Refresh credits balance before navigating
+        try {
+          const creditsResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/credits/balance`, {
+            headers: {
+              "Authorization": `Bearer ${backendToken}`
+            }
+          })
+          const creditsData = await creditsResponse.json()
+          setCreditsBalance(creditsData.balance)
+        } catch (error) {
+          console.error("Failed to refresh credits:", error)
+        }
+
         window.location.href = `/results/${data.analysis_id}`
       }
     } catch (error) {
@@ -118,7 +156,9 @@ export default function AnalyzePage() {
             <div className="flex justify-between items-center">
               <div>
                 <p className="text-sm text-gray-400">Your Credits</p>
-                <p className="text-2xl font-bold">100</p>
+                <p className="text-2xl font-bold">
+                  {creditsBalance !== null ? creditsBalance : "Loading..."}
+                </p>
               </div>
               <Link href="/credits">
                 <Button variant="outline" className="border-zinc-700 text-white hover:bg-zinc-800">
