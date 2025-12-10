@@ -5,7 +5,7 @@
   "rewrites": [
     {
       "source": "/api/auth/:path*",
-      "destination": "/api/auth/:path*" // 자기 자신 → rewrite 방지
+      "destination": "/api/auth/:path*"
     },
     {
       "source": "/api/:path*",
