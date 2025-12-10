@@ -34,13 +34,14 @@ export const authOptions: NextAuthOptions = {
 
         if (response.ok) {
           const data = await response.json()
-          // 백엔드에서 받은 user_id와 JWT access_token 저장
+          // 백엔드에서 받은 user_id와 JWT access_token을 account에 저장
           if (data.user_id) {
             user.id = data.user_id.toString()
           }
-          if (data.access_token) {
+          if (data.access_token && account) {
+            // account 객체에 저장하면 jwt 콜백에서 항상 접근 가능
             // @ts-ignore - 커스텀 프로퍼티
-            user.backendAccessToken = data.access_token
+            account.backendAccessToken = data.access_token
           }
           return true
         }
@@ -51,17 +52,20 @@ export const authOptions: NextAuthOptions = {
       }
     },
     async jwt({ token, account, profile, user }) {
+      // 최초 로그인 시 account 정보 저장
       if (account && profile) {
         token.accessToken = account.access_token
         token.id = profile.sub
+        // 백엔드 access token을 저장
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const backendToken = (account as any).backendAccessToken
+        if (backendToken) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (token as any).backendAccessToken = backendToken
+        }
       }
       if (user?.id) {
         token.userId = user.id
-      }
-      // @ts-ignore - 커스텀 프로퍼티
-      if (user?.backendAccessToken) {
-        // @ts-ignore - 커스텀 프로퍼티
-        token.backendAccessToken = user.backendAccessToken
       }
       return token
     },
