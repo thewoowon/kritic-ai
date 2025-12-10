@@ -4,8 +4,12 @@
   "framework": "nextjs",
   "rewrites": [
     {
-      "source": "/api/v1/:path*",
-      "destination": "https://web-production-480d.up.railway.app/api/v1/:path*"
+      "source": "/api/auth/:path*",
+      "destination": "/api/auth/:path*" // 자기 자신 → rewrite 방지
+    },
+    {
+      "source": "/api/:path*",
+      "destination": "https://web-production-480d.up.railway.app/api/:path*"
     }
   ]
 }
