@@ -59,6 +59,14 @@ export default function AnalyzePage() {
       return
     }
 
+    // @ts-expect-error - 커스텀 프로퍼티
+    const backendToken = session?.user?.backendAccessToken
+    if (!backendToken) {
+      alert("Authentication required. Please log in again.")
+      router.push("/login")
+      return
+    }
+
     setIsAnalyzing(true)
 
     try {
@@ -66,6 +74,7 @@ export default function AnalyzePage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${backendToken}`
         },
         body: JSON.stringify({
           original_response: originalResponse,

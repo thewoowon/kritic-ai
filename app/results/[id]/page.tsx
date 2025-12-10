@@ -1,10 +1,11 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useSession } from "next-auth/react"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, Download, Share2, AlertTriangle, TrendingDown, TrendingUp } from "lucide-react"
 import Link from "next/link"
-import { useParams } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 
 interface AnalysisResult {
   id: string
@@ -36,14 +37,37 @@ interface AnalysisResult {
 
 export default function ResultsPage() {
   const params = useParams()
+  const router = useRouter()
+  const { data: session, status } = useSession()
   const [result, setResult] = useState<AnalysisResult | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/login")
+      return
+    }
+
+    if (status !== "authenticated") {
+      return
+    }
+
     const fetchResults = async () => {
+      // @ts-expect-error - 커스텀 프로퍼티
+      const backendToken = session?.user?.backendAccessToken
+      if (!backendToken) {
+        console.error("No backend token available")
+        return
+      }
+
       try {
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/analyze/${params.id}`
+          `${process.env.NEXT_PUBLIC_API_URL}/api/analyze/${params.id}`,
+          {
+            headers: {
+              "Authorization": `Bearer ${backendToken}`
+            }
+          }
         )
         const data = await response.json()
         setResult(data)
@@ -59,7 +83,7 @@ export default function ResultsPage() {
       const interval = setInterval(fetchResults, 3000)
       return () => clearInterval(interval)
     }
-  }, [params.id])
+  }, [params.id, session, status, router])
 
   if (loading) {
     return (
@@ -185,7 +209,7 @@ export default function ResultsPage() {
             <div className="bg-zinc-900 rounded-lg p-6 border border-red-500/20">
               <h3 className="text-xl font-bold mb-4 text-red-500">Reality Check</h3>
               <p className="text-gray-300 text-sm leading-relaxed">
-                {result.final_verdict.reasoning}
+                {result.final_verdict?.reasoning || "Analysis in progress..."}
               </p>
             </div>
           </div>
@@ -274,10 +298,10 @@ export default function ResultsPage() {
           <div className="bg-gradient-to-br from-red-900/20 to-orange-900/20 rounded-lg p-8 border-2 border-red-600/30">
             <h2 className="text-2xl font-bold mb-6">Final Verdict</h2>
             <div className="flex items-center gap-6 mb-4">
-              <div className={`text-6xl font-bold ${getScoreColor(result.final_verdict.score)}`}>
-                {result.final_verdict.score}/10
+              <div className={`text-6xl font-bold ${getScoreColor(result.final_verdict?.score || 0)}`}>
+                {result.final_verdict?.score || 0}/10
               </div>
-              <p className="text-gray-300 flex-1">{result.final_verdict.reasoning}</p>
+              <p className="text-gray-300 flex-1">{result.final_verdict?.reasoning || "Analysis in progress..."}</p>
             </div>
           </div>
 
