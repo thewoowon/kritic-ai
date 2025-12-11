@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button"
 import { ArrowLeft, Download, Share2, AlertTriangle, TrendingDown, TrendingUp } from "lucide-react"
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
+import ReactMarkdown from "react-markdown"
+import remarkGfm from "remark-gfm"
 
 interface AnalysisResult {
   id: string
@@ -90,8 +92,8 @@ export default function ResultsPage() {
       <div className="min-h-screen bg-black text-white flex items-center justify-center">
         <div className="text-center space-y-4">
           <div className="w-16 h-16 border-4 border-red-600 border-t-transparent rounded-full animate-spin mx-auto" />
-          <p className="text-xl">Analyzing response...</p>
-          <p className="text-gray-400 text-sm">This may take 20-30 seconds</p>
+          <p className="text-xl">응답 분석 중...</p>
+          <p className="text-gray-400 text-sm">분석에 20-30초 정도 소요됩니다</p>
         </div>
       </div>
     )
@@ -102,7 +104,7 @@ export default function ResultsPage() {
       <div className="min-h-screen bg-black text-white flex items-center justify-center">
         <div className="text-center space-y-4">
           <div className="w-16 h-16 border-4 border-red-600 border-t-transparent rounded-full animate-spin mx-auto" />
-          <p className="text-xl">Still processing...</p>
+          <p className="text-xl">분석 진행 중...</p>
         </div>
       </div>
     )
@@ -127,16 +129,16 @@ export default function ResultsPage() {
         <div className="flex justify-between items-center mb-8">
           <Link href="/analyze" className="inline-flex items-center gap-2 text-gray-400 hover:text-white">
             <ArrowLeft className="w-4 h-4" />
-            New Analysis
+            새 분석
           </Link>
           <div className="flex gap-2">
             <Button variant="outline" className="border-zinc-700 text-white hover:bg-zinc-800">
               <Share2 className="w-4 h-4 mr-2" />
-              Share
+              공유
             </Button>
             <Button variant="outline" className="border-zinc-700 text-white hover:bg-zinc-800">
               <Download className="w-4 h-4 mr-2" />
-              Export
+              내보내기
             </Button>
           </div>
         </div>
@@ -144,7 +146,7 @@ export default function ResultsPage() {
         <div className="space-y-8">
           {/* Optimism Bias Score */}
           <div className="bg-zinc-900 rounded-lg p-8 border border-zinc-800">
-            <h2 className="text-2xl font-bold mb-6">Optimism Bias Score</h2>
+            <h2 className="text-2xl font-bold mb-6">낙관 편향 점수</h2>
             <div className="flex items-center gap-6">
               <div className="relative w-32 h-32">
                 <svg className="transform -rotate-90 w-32 h-32">
@@ -176,21 +178,21 @@ export default function ResultsPage() {
               </div>
               <div className="flex-1">
                 <p className="text-gray-400 mb-2">
-                  {result.optimism_bias_score >= 75 && "Extremely optimistic - Major reality disconnect"}
-                  {result.optimism_bias_score >= 50 && result.optimism_bias_score < 75 && "Highly optimistic - Significant concerns"}
-                  {result.optimism_bias_score >= 25 && result.optimism_bias_score < 50 && "Moderately optimistic - Some caution needed"}
-                  {result.optimism_bias_score < 25 && "Realistic assessment - Well balanced"}
+                  {result.optimism_bias_score >= 75 && "극도로 낙관적 - 현실과 심각한 괴리"}
+                  {result.optimism_bias_score >= 50 && result.optimism_bias_score < 75 && "매우 낙관적 - 주요 우려사항 존재"}
+                  {result.optimism_bias_score >= 25 && result.optimism_bias_score < 50 && "다소 낙관적 - 일부 주의 필요"}
+                  {result.optimism_bias_score < 25 && "현실적 평가 - 균형잡힌 시각"}
                 </p>
                 <div className="flex items-center gap-2 text-sm">
                   {result.optimism_bias_score >= 50 ? (
                     <>
                       <TrendingDown className="w-4 h-4 text-red-500" />
-                      <span className="text-red-500">High reality check needed</span>
+                      <span className="text-red-500">높은 수준의 현실성 점검 필요</span>
                     </>
                   ) : (
                     <>
                       <TrendingUp className="w-4 h-4 text-green-500" />
-                      <span className="text-green-500">Reasonable expectations</span>
+                      <span className="text-green-500">합리적인 기대치</span>
                     </>
                   )}
                 </div>
@@ -201,22 +203,26 @@ export default function ResultsPage() {
           {/* Original vs Reality */}
           <div className="grid md:grid-cols-2 gap-6">
             <div className="bg-zinc-900 rounded-lg p-6 border border-zinc-800">
-              <h3 className="text-xl font-bold mb-4 text-green-500">Original AI Response</h3>
-              <p className="text-gray-300 text-sm leading-relaxed whitespace-pre-wrap">
-                {result.original_response}
-              </p>
+              <h3 className="text-xl font-bold mb-4 text-green-500">원본 AI 응답</h3>
+              <div className="text-gray-300 text-sm leading-relaxed max-h-[400px] overflow-y-auto">
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {result.original_response}
+                </ReactMarkdown>
+              </div>
             </div>
             <div className="bg-zinc-900 rounded-lg p-6 border border-red-500/20">
-              <h3 className="text-xl font-bold mb-4 text-red-500">Reality Check</h3>
-              <p className="text-gray-300 text-sm leading-relaxed">
-                {result.final_verdict?.reasoning || "Analysis in progress..."}
-              </p>
+              <h3 className="text-xl font-bold mb-4 text-red-500">현실성 검증</h3>
+              <div className="text-gray-300 text-sm leading-relaxed max-h-[400px] overflow-y-auto">
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {result.final_verdict?.reasoning || "분석 진행 중..."}
+                </ReactMarkdown>
+              </div>
             </div>
           </div>
 
           {/* Competitor Analysis */}
           <div className="bg-zinc-900 rounded-lg p-8 border border-zinc-800">
-            <h2 className="text-2xl font-bold mb-6">Competitor Analysis</h2>
+            <h2 className="text-2xl font-bold mb-6">경쟁사 분석</h2>
             {result.competitors.length > 0 ? (
               <div className="space-y-4">
                 {result.competitors.map((competitor, idx) => (
@@ -232,27 +238,27 @@ export default function ResultsPage() {
                         rel="noopener noreferrer"
                         className="text-red-500 hover:text-red-400 text-sm"
                       >
-                        Visit →
+                        방문 →
                       </a>
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-gray-400">No major competitors identified</p>
+              <p className="text-gray-400">주요 경쟁사가 발견되지 않았습니다</p>
             )}
           </div>
 
           {/* Market Size Reality Check */}
           <div className="bg-zinc-900 rounded-lg p-8 border border-zinc-800">
-            <h2 className="text-2xl font-bold mb-6">Market Size Reality Check</h2>
+            <h2 className="text-2xl font-bold mb-6">시장 규모 현실 확인</h2>
             <div className="grid md:grid-cols-2 gap-6">
               <div>
-                <p className="text-sm text-gray-400 mb-2">Claimed</p>
+                <p className="text-sm text-gray-400 mb-2">주장된 규모</p>
                 <p className="text-2xl font-bold text-green-500">{result.market_size_reality.claimed}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-400 mb-2">Actual</p>
+                <p className="text-sm text-gray-400 mb-2">실제 규모</p>
                 <p className="text-2xl font-bold text-red-500">{result.market_size_reality.actual}</p>
               </div>
             </div>
@@ -261,18 +267,18 @@ export default function ResultsPage() {
 
           {/* Feasibility Assessment */}
           <div className="bg-zinc-900 rounded-lg p-8 border border-zinc-800">
-            <h2 className="text-2xl font-bold mb-6">Feasibility Assessment</h2>
+            <h2 className="text-2xl font-bold mb-6">실현 가능성 평가</h2>
             <div className="space-y-6">
               <div>
-                <h4 className="font-semibold mb-2 text-orange-500">Technical</h4>
+                <h4 className="font-semibold mb-2 text-orange-500">기술적 측면</h4>
                 <p className="text-gray-300 text-sm">{result.feasibility_assessment.technical}</p>
               </div>
               <div>
-                <h4 className="font-semibold mb-2 text-orange-500">Financial</h4>
+                <h4 className="font-semibold mb-2 text-orange-500">재무적 측면</h4>
                 <p className="text-gray-300 text-sm">{result.feasibility_assessment.financial}</p>
               </div>
               <div>
-                <h4 className="font-semibold mb-2 text-orange-500">Timeline</h4>
+                <h4 className="font-semibold mb-2 text-orange-500">타임라인</h4>
                 <p className="text-gray-300 text-sm">{result.feasibility_assessment.timeline}</p>
               </div>
             </div>
@@ -282,7 +288,7 @@ export default function ResultsPage() {
           <div className="bg-zinc-900 rounded-lg p-8 border border-red-500/20">
             <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
               <AlertTriangle className="text-red-500" />
-              Risk Factors
+              위험 요소
             </h2>
             <ul className="space-y-3">
               {result.risk_factors.map((risk, idx) => (
@@ -296,12 +302,16 @@ export default function ResultsPage() {
 
           {/* Final Verdict */}
           <div className="bg-gradient-to-br from-red-900/20 to-orange-900/20 rounded-lg p-8 border-2 border-red-600/30">
-            <h2 className="text-2xl font-bold mb-6">Final Verdict</h2>
+            <h2 className="text-2xl font-bold mb-6">최종 평가</h2>
             <div className="flex items-center gap-6 mb-4">
               <div className={`text-6xl font-bold ${getScoreColor(result.final_verdict?.score || 0)}`}>
                 {result.final_verdict?.score || 0}/10
               </div>
-              <p className="text-gray-300 flex-1">{result.final_verdict?.reasoning || "Analysis in progress..."}</p>
+              <div className="text-gray-300 flex-1 max-h-[200px] overflow-y-auto">
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {result.final_verdict?.reasoning || "분석 진행 중..."}
+                </ReactMarkdown>
+              </div>
             </div>
           </div>
 
@@ -309,12 +319,12 @@ export default function ResultsPage() {
           <div className="flex gap-4 justify-center">
             <Link href="/analyze">
               <Button size="lg" className="bg-red-600 hover:bg-red-700 text-white">
-                Analyze Another Response
+                다른 응답 분석하기
               </Button>
             </Link>
             <Link href="/credits">
               <Button size="lg" variant="outline" className="border-zinc-700 text-white hover:bg-zinc-800">
-                Buy More Credits
+                크레딧 구매하기
               </Button>
             </Link>
           </div>

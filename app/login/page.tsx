@@ -10,10 +10,10 @@ export default function LoginPage() {
       <div className="max-w-md w-full space-y-8 p-8">
         <div className="text-center">
           <h1 className="text-4xl font-bold mb-2">
-            Welcome to <span className="text-red-500">Kritic</span>
+            <span className="text-red-500">Kritic</span>에 오신 것을 환영합니다
           </h1>
           <p className="text-gray-400">
-            Sign in to start getting brutal reality checks
+            로그인하고 냉정한 현실 검증을 시작하세요
           </p>
         </div>
 
@@ -40,19 +40,19 @@ export default function LoginPage() {
                 d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
               />
             </svg>
-            Continue with Google
+            Google로 계속하기
           </Button>
 
           <div className="mt-6 text-center text-sm text-gray-500">
             <p>
-              By signing in, you agree to our Terms of Service and Privacy Policy
+              로그인하시면 서비스 약관 및 개인정보 처리방침에 동의하는 것으로 간주됩니다
             </p>
           </div>
         </div>
 
         <div className="text-center">
           <Link href="/" className="text-gray-400 hover:text-white text-sm">
-            ← Back to home
+            ← 홈으로 돌아가기
           </Link>
         </div>
       </div>
